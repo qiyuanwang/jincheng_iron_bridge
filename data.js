@@ -308,7 +308,7 @@ window.GAME_DATA = {
       "button": "收好纸条"
     },
       {
-      "id": "N17.0",
+      "id": "N17A",
       "title": "场景切换",
       "body": [
         "请确认是否前往下一地点白塔山"
