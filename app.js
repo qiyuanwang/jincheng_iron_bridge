@@ -6,7 +6,14 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const state = { node: 1, completed: [], items: [], walls: [], notes: [], selected: {}, history: [], answers: [], largeText: false, reviewNode: null };
   let timer;
-  const node = id => D.nodes.find(n => n.id === `N${String(id).padStart(2,'0')}`) || D.nodes.find(n => n.id === id);
+  const node = id => {
+    if(id == null) return D.nodes[0];
+    const raw = String(id).trim();
+    return D.nodes.find(n => n.id === raw)
+      || D.nodes.find(n => n.id === `N${raw.padStart(2,'0')}`)
+      || ( /^\d+(?:\.0+)?$/.test(raw) ? D.nodes.find(n => n.id === `N${String(Number(raw)).padStart(2,'0')}`) : null )
+      || D.nodes[0];
+  };
   const item = id => D.items[id];
   const has = id => state.items.includes(id);
   const current = () => node(state.reviewNode || state.node) || D.nodes[0];
@@ -18,7 +25,39 @@
   const labels = {story:'剧情过场',single:'关键调查 · 单选',fill:'关键调查 · 填空',judge:'关键调查 · 判断与填空',sort:'关键调查 · 排序',light:'关键调查 · 逐条点亮',field:'实景彩蛋'};
   function available(n) { return !n.requires || n.requires.every(x => has(x)); }
   function missing(n) { return (n.requires || []).filter(x=>!has(x)).map(x=>item(x)?.title || x); }
-  function nextNode(id) { const target = Number(String(id).replace('N','')) || 1; if(state.reviewNode){ state.reviewNode = `N${String(target).padStart(2,'0')}`; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); return; } state.history.push(state.node); state.node = target; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+  function resolveNodeId(id) {
+    const raw = String(id ?? '').trim();
+    const exact = D.nodes.find(n => n.id === raw);
+    if(exact) return exact.id;
+    if(/^\d+(?:\.0+)?$/.test(raw)) {
+      const numeric = String(Number(raw)).padStart(2,'0');
+      const byNumber = D.nodes.find(n => n.id === `N${numeric}`);
+      if(byNumber) return byNumber.id;
+    }
+    const prefixed = raw.startsWith('N') ? raw : `N${raw}`;
+    return D.nodes.find(n => n.id === prefixed)?.id || null;
+  }
+  function nextSequentialId(n) {
+    const i = D.nodes.findIndex(x => x.id === n.id);
+    return i >= 0 && D.nodes[i + 1] ? D.nodes[i + 1].id : null;
+  }
+  function nextNode(id) {
+    const targetId = resolveNodeId(id) || 'N01';
+    if(state.reviewNode){
+      state.reviewNode = targetId;
+      state.selected={};
+      save();
+      render();
+      window.scrollTo({top:0,behavior:'smooth'});
+      return;
+    }
+    state.history.push(state.node);
+    state.node = targetId;
+    state.selected={};
+    save();
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
   function finishNode(n) { if (!state.completed.includes(n.id)) state.completed.push(n.id); (n.gains||[]).forEach(x=>gain(x)); if(n.enterGains) n.enterGains.forEach(x=>gain(x)); (n.wall||[]).forEach(x=>{ if(!state.walls.includes(x)) state.walls.push(x); }); save(); }
   function gain(id) { if(!D.items[id] || has(id)) return; state.items.push(id); const x=item(id); if(x && !state.notes.includes(x.title)) state.notes.push(x.title); }
 
@@ -51,11 +90,11 @@
     const pct=Math.round((state.completed.length/40)*100);
     const mainN=mainProgressNode();
     const viewN=current();
-    const reviewText=state.reviewNode ? `<div class="review-status">正在回看 N${String(Number(viewN.id.slice(1))).padStart(2,'0')} · ${esc(viewN.title)}</div>` : '';
-    r.innerHTML=`<div class="rail-label">行动进度</div><div class="progress-track"><span style="width:${Math.min(100,pct)}%"></span></div><div class="progress-text">已完成 ${state.completed.length} / 40 节点</div><div class="progress-text small-progress">当前进度：N${String(Number(mainN.id.slice(1))).padStart(2,'0')} · ${esc(mainN.title)}</div>${reviewText}<div class="rail-actions"><button class="primary rail-current" data-action="current">返回当前进度</button><button data-action="history">节点回看 <strong>${state.completed.length}</strong></button></div><hr><button data-action="map" class="${state.node===4?'active':''}">金城调查地图</button><button data-action="evidence">证物与档案 <strong>${state.items.length}</strong></button><button data-action="wall">案件墙 <strong>${state.walls.length}</strong></button><hr><div class="rail-label">三句话提示</div><div class="reminder">仔细观察铁桥。<br>不要轻信资料。<br>颜色很重要。</div><hr><button data-action="extras">额外探索</button><button data-action="settings">游玩设置</button>`;
+    const reviewText=state.reviewNode ? `<div class="review-status">正在回看 ${esc(viewN.id)} · ${esc(viewN.title)}</div>` : '';
+    r.innerHTML=`<div class="rail-label">行动进度</div><div class="progress-track"><span style="width:${Math.min(100,pct)}%"></span></div><div class="progress-text">已完成 ${state.completed.length} / 40 节点</div><div class="progress-text small-progress">当前进度：${esc(mainN.id)} · ${esc(mainN.title)}</div>${reviewText}<div class="rail-actions"><button class="primary rail-current" data-action="current">返回当前进度</button><button data-action="history">节点回看 <strong>${state.completed.length}</strong></button></div><hr><button data-action="map" class="${mainN.id==='N04'?'active':''}">金城调查地图</button><button data-action="evidence">证物与档案 <strong>${state.items.length}</strong></button><button data-action="wall">案件墙 <strong>${state.walls.length}</strong></button><hr><div class="rail-label">三句话提示</div><div class="reminder">仔细观察铁桥。<br>不要轻信资料。<br>颜色很重要。</div><hr><button data-action="extras">额外探索</button><button data-action="settings">游玩设置</button>`;
   }
 
-  function shell(n) { return `<div class="page-meta"><span class="eyebrow">${esc(labels[n.type]||'调查节点')}</span><span class="node-count">N${String(Number(n.id.slice(1))).padStart(2,'0')} · ${esc(n.title)}</span></div>`; }
+  function shell(n) { return `<div class="page-meta"><span class="eyebrow">${esc(labels[n.type]||'调查节点')}</span><span class="node-count">${esc(n.id)} · ${esc(n.title)}</span></div>`; }
   function bodyText(n) { return (n.body||[]).map(x=>`<p>${esc(x)}</p>`).join(''); }
   function visuals(n) {
     const imgs=n.images || (n.image?[n.image]:[]); if(!imgs.length) return '';
@@ -76,7 +115,7 @@
   function reviewBanner(n) {
     if(!state.reviewNode) return '';
     const mainN=mainProgressNode();
-    return `<div class="review-banner"><div><strong>正在回看：N${String(Number(n.id.slice(1))).padStart(2,'0')} · ${esc(n.title)}</strong><span>当前正式进度仍停留在 N${String(Number(mainN.id.slice(1))).padStart(2,'0')} · ${esc(mainN.title)}</span></div><div class="actions"><button class="primary" data-action="current">返回当前进度</button><button class="secondary" data-action="resume-from-review">从此节点继续</button></div></div>`;
+    return `<div class="review-banner"><div><strong>正在回看：${esc(n.id)} · ${esc(n.title)}</strong><span>当前正式进度仍停留在 ${esc(mainN.id)} · ${esc(mainN.title)}</span></div><div class="actions"><button class="primary" data-action="current">返回当前进度</button><button class="secondary" data-action="resume-from-review">从此节点继续</button></div></div>`;
   }
 
   function renderStory(n) {
@@ -102,8 +141,14 @@
   }
   function action(e) {
     const el=e.target.closest('[data-action]'); if(!el) return; const a=el.dataset.action; const n=current();
-    if(a==='continue') { if(state.reviewNode){ toast('你正在回看历史节点。请先返回当前进度，或选择“从此节点继续”。'); return; } finishNode(n); if(n.id==='N37') nextNode(38); else if(n.id==='N40') goHome(); else nextNode(Number(n.id.slice(1))+1); }
-    else if(a==='home') goHome(); else if(a==='current') { state.reviewNode=null; state.selected={}; save(); $('#dialog').close(); render(); } else if(a==='resume-from-review') { if(state.reviewNode){ state.node=Number(String(state.reviewNode).replace('N',''))||state.node; state.reviewNode=null; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); } } else if(a==='map') showMap(); else if(a==='evidence') showEvidence(); else if(a==='wall') showWall(); else if(a==='history') showHistory(); else if(a==='extras') showExtras(); else if(a==='settings') showSettings(); else if(a==='close-dialog') $('#dialog').close();
+    if(a==='continue') {
+      if(state.reviewNode){ toast('你正在回看历史节点。请先返回当前进度，或选择“从此节点继续”。'); return; }
+      finishNode(n);
+      if(n.id==='N37') nextNode('N38');
+      else if(n.id==='N40') goHome();
+      else nextNode(n.next || nextSequentialId(n));
+    }
+    else if(a==='home') goHome(); else if(a==='current') { state.reviewNode=null; state.selected={}; save(); $('#dialog').close(); render(); } else if(a==='resume-from-review') { if(state.reviewNode){ state.node=resolveNodeId(state.reviewNode)||state.node; state.reviewNode=null; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); } } else if(a==='map') showMap(); else if(a==='evidence') showEvidence(); else if(a==='wall') showWall(); else if(a==='history') showHistory(); else if(a==='extras') showExtras(); else if(a==='settings') showSettings(); else if(a==='close-dialog') $('#dialog').close();
     else if(a==='zoom') showImage(el.dataset.src,el.dataset.caption);
     else if(a==='answer-single') answerSingle(n, Number(el.dataset.i), el);
     else if(a==='judge') { state.selected.judge=el.dataset.val; document.querySelectorAll('.fields input').forEach(x=>x.removeAttribute('disabled')); toast(state.selected.judge==='yes'?'你选择相信自己的判断。':'提示已展开，输入地点名称时要包含“三台”。'); }
@@ -162,7 +207,7 @@
 
   function ensureMobileHistoryNav(){ const nav=$('.mobile-nav'); if(!nav) return; if(!nav.querySelector('[data-action="history"]')) nav.insertAdjacentHTML('beforeend','<button data-action="history">进度</button>'); nav.style.gridTemplateColumns='repeat(5,1fr)'; nav.querySelectorAll('button').forEach(b=>{b.style.fontSize='12px';b.style.padding='0 2px';}); }
   function showImage(src,cap){ $('#dialog-title').textContent=cap||'卷宗配图'; $('#dialog-body').innerHTML=`<img class="dialog-image" src="${image(src)}" alt="${esc(cap||'卷宗配图')}">`; $('#dialog').showModal(); }
-  function showMap(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">调查地图</span><span class="node-count">可按你的旅程进入</span></div><h1>金城调查地图</h1><p class="map-intro">主线按推荐顺序排列。已走过的地点会保留证物；点开任一调查区，即可从最适合当前进度的位置继续。</p><div class="route-caption"><span>推荐路线</span><span>中山桥 → 白塔山 → 水车园 → 城内 → 314号</span></div><div class="map-grid">${D.regions.map((r,i)=>`<button class="region-card" data-action="region" data-start="${r.start}"><img src="${image(r.image)}" alt="${esc(r.name)}"><div class="region-copy"><span class="region-number">0${i+1}</span><h2>${esc(r.name)}</h2><p>${esc(r.tag)}</p><span class="region-status">${state.completed.includes('N'+String(r.start).padStart(2,'0'))?'已调查':'待调查'} · 点击进入</span></div></button>`).join('')}<div class="wide-card"><div><h2>继续上次调查</h2><p>当前停留在 N${String(state.node).padStart(2,'0')} · ${esc(current().title)}。你也可以从节点目录回看已经完成的节点。</p></div><button class="primary" data-action="current">回到当前进度</button></div></div>`; renderRail(); }
+  function showMap(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">调查地图</span><span class="node-count">可按你的旅程进入</span></div><h1>金城调查地图</h1><p class="map-intro">主线按推荐顺序排列。已走过的地点会保留证物；点开任一调查区，即可从最适合当前进度的位置继续。</p><div class="route-caption"><span>推荐路线</span><span>中山桥 → 白塔山 → 水车园 → 城内 → 314号</span></div><div class="map-grid">${D.regions.map((r,i)=>`<button class="region-card" data-action="region" data-start="${r.start}"><img src="${image(r.image)}" alt="${esc(r.name)}"><div class="region-copy"><span class="region-number">0${i+1}</span><h2>${esc(r.name)}</h2><p>${esc(r.tag)}</p><span class="region-status">${state.completed.includes('N'+String(r.start).padStart(2,'0'))?'已调查':'待调查'} · 点击进入</span></div></button>`).join('')}<div class="wide-card"><div><h2>继续上次调查</h2><p>当前停留在 ${esc(mainProgressNode().id)} · ${esc(mainProgressNode().title)}。你也可以从节点目录回看已经完成的节点。</p></div><button class="primary" data-action="current">回到当前进度</button></div></div>`; renderRail(); }
   function showEvidence(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">证物库</span><span class="node-count">共 ${state.items.length} 件</span></div><h1>证物与档案</h1>${state.items.length?`<div class="items-grid">${state.items.map(id=>{const x=item(id);return `<button class="evidence-card" data-action="item" data-id="${esc(id)}">${x.image?`<img loading="lazy" src="${image(x.image)}" alt="${esc(x.title)}">`:'<div class="paper-mark">卷宗</div>'}<h3>${esc(x.title)}</h3><p>${esc(x.text)}</p></button>`}).join('')}</div>`:'<div class="empty">你还没有获得证物。沿着中山桥调查区开始，卷宗会在关键节点记录线索。</div>'}`; renderRail(); }
   function showWall(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">线索汇总</span><span class="node-count">案件墙</span></div><h1>案件墙</h1>${state.walls.length?state.walls.map((x,i)=>`<div class="wall-entry"><span class="index">${String(i+1).padStart(2,'0')}</span><p>${esc(x)}</p></div>`).join(''):'<div class="empty">案件墙还没有更新。每次获得关键证物，相关疑点会自动写入这里。</div>'}`; renderRail(); }
   function showHistory(){
@@ -179,11 +224,11 @@
       const disabled=!done && !isCurrent;
       return `<button class="node-history-row ${isCurrent?'is-current':''} ${done?'is-done':''} ${disabled?'is-locked':''}" ${disabled?'disabled':''} data-action="review-node" data-id="${esc(n.id)}"><span class="node-history-no">${esc(n.id)}</span><span class="node-history-main"><strong>${esc(n.title)}</strong><small>${esc(labels[n.type]||'调查节点')}</small></span><span class="node-history-state">${label}</span></button>`;
     }).join('')}</section>`).join('');
-    $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">节点回看</span><span class="node-count">共 40 个节点</span></div><h1>调查进度与节点回看</h1><p class="map-intro">这里不是“答案记录”，而是你的调查卷宗目录。已完成的节点可以点击回看；回看不会改变当前正式进度。需要从某个历史节点重新开始时，可在该节点页点击“从此节点继续”。</p><div class="node-history">${groupHtml}</div><div class="actions"><button class="primary" data-action="current">返回当前进度 · N${String(Number(mainNode.id.slice(1))).padStart(2,'0')}</button><button class="secondary" data-action="map">查看调查地图</button></div>`;
+    $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">节点回看</span><span class="node-count">共 ${D.nodes.length} 个节点</span></div><h1>调查进度与节点回看</h1><p class="map-intro">这里不是“答案记录”，而是你的调查卷宗目录。已完成的节点可以点击回看；回看不会改变当前正式进度。需要从某个历史节点重新开始时，可在该节点页点击“从此节点继续”。</p><div class="node-history">${groupHtml}</div><div class="actions"><button class="primary" data-action="current">返回当前进度 · ${esc(mainNode.id)}</button><button class="secondary" data-action="map">查看调查地图</button></div>`;
     renderRail();
   }
 
-  function showExtras(){ $('#dialog-title').textContent='额外探索 '; $('#dialog-body').innerHTML=`<div class="extras-list">${D.extras.map(x=>`<button data-action="extra" data-id="${esc(x.id)}"><h3>${esc(x.title)}</h3><p>${esc(x.prompt)}</p></button>`).join('')}</div>`; $('#dialog').showModal(); }
+  function showExtras(){ $('#dialog-title').textContent='额外探索'; $('#dialog-body').innerHTML=`<div class="extras-list">${D.extras.map(x=>`<button data-action="extra" data-id="${esc(x.id)}"><h3>${esc(x.title)}</h3><p>${esc(x.prompt)}</p></button>`).join('')}</div>`; $('#dialog').showModal(); }
   function showExtra(id){const x=D.extras.find(y=>y.id===id);if(!x)return;$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`${x.image?`<img class="dialog-image" src="${image(x.image)}" alt="${esc(x.title)}">`:''}<p class="dialog-body-text">${esc(x.prompt)}</p><div class="actions"><button class="primary" data-action="extra-answer" data-id="${esc(id)}">查看答案</button></div>`;}
   function showExtraAnswer(id){const x=D.extras.find(y=>y.id===id);$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`<p class="dialog-body-text"><strong>档案答案：</strong>${esc(x.answer)}</p><button class="secondary" data-action="extras">返回额外探索</button>`;}
   function showSettings(){ $('#dialog-title').textContent='游玩设置'; $('#dialog-body').innerHTML=`<div class="settings-row"><h3>字体大小</h3><p>在手机上阅读长段落时，可以放大正文。</p><button class="secondary" data-action="large-text">${state.largeText?'恢复标准字号':'放大正文'}</button></div><div class="settings-row"><h3>重新开始</h3><p>清空本设备上的进度，从序章重新进入。</p><button class="secondary danger" data-action="reset">清空进度</button></div><div class="settings-row"><h3>网页说明</h3><p>这是纯静态网页，不需要登录或联网数据；图片与进度都在本网页中处理。建议用手机浏览器打开，现场只在安全、开放的公共区域观察，不要为了答题攀爬或靠近危险位置。</p></div>`; $('#dialog').showModal(); }
