@@ -442,7 +442,7 @@ window.GAME_DATA = {
       "fields": [
         [
           "直径（米）",
-           "/^(16|16\\.5)$/"
+             "16"
         ]
       ],
       "image": "image13.jpeg",
