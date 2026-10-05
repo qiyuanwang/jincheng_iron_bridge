@@ -841,7 +841,7 @@ window.GAME_DATA = {
       "image": "image15.png"
     },
     "intelB": {
-      "title": "关键情报B｜Ⅲ号墩爆破风险",
+      "title": "关键情报B｜Ⅲ号墩",
       "text": "桥底影像、结构图、计划残页互相印证：第Ⅲ号桥墩存在爆破风险。",
       "image": null
     },
