@@ -335,7 +335,7 @@ window.GAME_DATA = {
       ],
       "type": "story",
       "image": "image11.jpeg",
-      "caption": "凤林香袅牌坊 · 原稿现场照片",
+      "caption": "凤林香袅牌坊 · 照片",
       "button": "调查凤林香袅牌坊"
     },
     {
@@ -351,7 +351,7 @@ window.GAME_DATA = {
         "image11.jpeg",
         "image12.jpeg"
       ],
-      "caption": "牌坊与景区简介牌 · 原稿现场照片",
+      "caption": "牌坊与景区简介牌 · 照片",
       "archive": "可用于这道文字谜的线索为：“凤林香袅，秀映三台”。",
       "gains": [
         "plaque"
@@ -423,9 +423,9 @@ window.GAME_DATA = {
       ],
       "type": "story",
       "image": "image13.jpeg",
-      "caption": "水车博览园 · 原稿现场照片",
+      "caption": "水车博览园 · 照片",
       "note": "现实景点作为观察入口，剧情中的取货地点为虚构改编。",
-      "button": "调查巨型水车"
+      "button": "调查园区中央的黄河大水车"
     },
     {
       "id": "N23",
@@ -434,16 +434,16 @@ window.GAME_DATA = {
         "先看现场介绍牌。只凭目测很难估准直径，可以打开档案核对。"
       ],
       "type": "fill",
-      "prompt": "按本卷宗的水车档案，轮径约多少米？",
+      "prompt": "园区中央的黄河大水车轮径约多少米？",
       "fields": [
         [
           "直径（米）",
-          "16"
+          "16.5"
         ]
       ],
       "image": "image13.jpeg",
       "caption": "水车观察照片",
-      "archive": "本卷宗采用的巨型水车档案参数：轮径约16米。不同水车尺寸不同，本题以这一参数为准。",
+      "archive": "兰州巨型水车档案参数：轮径约16米。不同水车尺寸不同，本题以这一参数为准。",
       "gains": [
         "code16"
       ],
