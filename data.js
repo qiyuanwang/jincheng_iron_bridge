@@ -970,7 +970,7 @@ window.GAME_DATA = {
       "tag": "一句暗号 · 一个地址",
       "start": 30,
       "end": 32,
-      "image": "image16.png"
+      "image": "city-map-card.png"
     },
     {
       "id": "office",
