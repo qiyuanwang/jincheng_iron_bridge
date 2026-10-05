@@ -113,7 +113,7 @@
     const imgs=n.images || (n.image?[n.image]:[]); if(!imgs.length) return '';
     return `<div class="visual"><div class="photo-stack ${imgs.length>1?'two':''}">${imgs.map((x,i)=>`<button class="photo-btn" data-action="zoom" data-src="${esc(x)}" data-caption="${esc(n.caption||'点击查看大图')}"><img loading="lazy" src="${image(x)}" alt="${esc(n.caption||'卷宗配图')}"></button>`).join('')}</div>${n.caption?`<p class="caption">${esc(n.caption)} · 点击图片放大</p>`:''}</div>`;
   }
-  function archive(n) { return n.archive ? `<details class="archive"><summary>打开档案模式 / 现场无法查看时使用</summary><p>${esc(n.archive)}</p></details>`:''; }
+  function archive(n) { return n.archive ? `<details class="archive"><summary>打开提示档案，遇到难题或无法搜集到所需信息时使用</summary><p>${esc(n.archive)}</p></details>`:''; }
   function renderQuestion(n) {
     let q='';
     if(n.type==='single') q=`<div class="question"><h2>${esc(n.prompt)}</h2>${n.options.map((x,i)=>`<button class="choice" data-action="answer-single" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span><span>${esc(x)}</span></button>`).join('')}</div>`;
