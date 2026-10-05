@@ -676,10 +676,6 @@ window.GAME_DATA = {
         "晚些再去，暂留本地进度缓存",
       ],
       "correct": 0,
-      "gains": [
-        "intelA",
-        "view"
-      ],
       "success": "你进入了最终地点酒泉路314号。"
     },
     {
