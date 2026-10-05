@@ -393,7 +393,7 @@ window.GAME_DATA = {
       "id": "N21",
       "title": "高处望桥",
       "body": [
-        "抬头想一想：什么位置能看得更远，也更早发现空中的动静？"
+        "你站在白塔山山顶的观景台，请抬头想一想：什么位置能看得更远，也更早发现空中的动静？"
       ],
       "type": "single",
       "prompt": "若要尽早发现空中敌情，观察点应设在哪里？",
@@ -403,10 +403,6 @@ window.GAME_DATA = {
         "城内狭窄巷子"
       ],
       "correct": 0,
-      "gains": [
-        "intelA",
-        "view"
-      ],
       "success": "高处视野开阔，适合作为观察与预警位置。"
     },
      {
@@ -422,10 +418,6 @@ window.GAME_DATA = {
         "晚些再去，暂留本地进度缓存",
       ],
       "correct": 0,
-      "gains": [
-        "intelA",
-        "view"
-      ],
       "success": "你进入了水车博览园调查区。"
     }, {
       "id": "N22",
@@ -620,10 +612,6 @@ window.GAME_DATA = {
         "晚些再去，暂留本地进度缓存",
       ],
       "correct": 0,
-      "gains": [
-        "intelA",
-        "view"
-      ],
       "success": "你进入了城内接头区。"
     },
     {
