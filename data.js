@@ -858,7 +858,7 @@ window.GAME_DATA = {
     },
     "code16": {
       "title": "代码碎片｜16",
-      "text": "水车档案轮径约16米，提取数字16。",
+      "text": "水车档案轮径整数约16米。",
       "image": null
     },
     "codeUp": {
