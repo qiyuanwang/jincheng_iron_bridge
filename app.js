@@ -34,8 +34,17 @@
 
   function feedback(n, message, gains=[]) {
     const list = gains.filter(Boolean).map(x => item(x)).filter(Boolean);
-    return `<div class="feedback"><h3>线索已记录</h3><p>${esc(message || n.success || '你的判断已写入卷宗。')}</p>${list.length?'<p>'+list.map(x=>`<span class="item-tag">${esc(x.title)}</span>`).join('')+'</p>':''}</div>`;
+    const evidenceHtml = list.length ? `<div class="feedback-evidence-grid">${list.map(x => `
+      <article class="feedback-evidence">
+        ${x.image ? `<button class="feedback-evidence-image" data-action="zoom" data-src="${esc(x.image)}" data-caption="${esc(x.title)}"><img loading="lazy" src="${image(x.image)}" alt="${esc(x.title)}"></button>` : ''}
+        <div class="feedback-evidence-copy">
+          <strong>${esc(x.title)}</strong>
+          ${x.text ? `<p>${esc(x.text)}</p>` : ''}
+        </div>
+      </article>`).join('')}</div>` : '';
+    return `<div class="feedback"><h3>线索已记录</h3><p>${esc(message || n.success || '你的判断已写入卷宗。')}</p>${evidenceHtml}</div>`;
   }
+
 
   function renderRail() {
     const r=$('#rail');
@@ -134,6 +143,23 @@
     document.head.appendChild(style);
   }
 
+  function ensureFeedbackEvidenceStyles(){
+    if(document.getElementById('feedback-evidence-styles')) return;
+    const style=document.createElement('style');
+    style.id='feedback-evidence-styles';
+    style.textContent=`
+      .feedback-evidence-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}
+      .feedback-evidence{border:1px solid #bccabb;background:#fffdf4;overflow:hidden}
+      .feedback-evidence-image{display:block;width:100%;padding:0;background:#e9e1cf;border:0;cursor:zoom-in}
+      .feedback-evidence-image img{display:block;width:100%;height:220px;object-fit:contain}
+      .feedback-evidence-copy{padding:12px 14px}
+      .feedback-evidence-copy strong{display:block;font-family:var(--serif);font-size:15px;color:var(--ink);margin-bottom:5px}
+      .feedback-evidence-copy p{margin:0;color:var(--muted);font-size:13px;line-height:1.7}
+      @media(max-width:720px){.feedback-evidence-grid{grid-template-columns:1fr}.feedback-evidence-image img{height:190px}}
+    `;
+    document.head.appendChild(style);
+  }
+
   function ensureMobileHistoryNav(){ const nav=$('.mobile-nav'); if(!nav) return; if(!nav.querySelector('[data-action="history"]')) nav.insertAdjacentHTML('beforeend','<button data-action="history">进度</button>'); nav.style.gridTemplateColumns='repeat(5,1fr)'; nav.querySelectorAll('button').forEach(b=>{b.style.fontSize='12px';b.style.padding='0 2px';}); }
   function showImage(src,cap){ $('#dialog-title').textContent=cap||'卷宗配图'; $('#dialog-body').innerHTML=`<img class="dialog-image" src="${image(src)}" alt="${esc(cap||'卷宗配图')}">`; $('#dialog').showModal(); }
   function showMap(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">调查地图</span><span class="node-count">可按你的旅程进入</span></div><h1>金城调查地图</h1><p class="map-intro">主线按推荐顺序排列。已走过的地点会保留证物；点开任一调查区，即可从最适合当前进度的位置继续。</p><div class="route-caption"><span>推荐路线</span><span>中山桥 → 白塔山 → 水车园 → 城内 → 314号</span></div><div class="map-grid">${D.regions.map((r,i)=>`<button class="region-card" data-action="region" data-start="${r.start}"><img src="${image(r.image)}" alt="${esc(r.name)}"><div class="region-copy"><span class="region-number">0${i+1}</span><h2>${esc(r.name)}</h2><p>${esc(r.tag)}</p><span class="region-status">${state.completed.includes('N'+String(r.start).padStart(2,'0'))?'已调查':'待调查'} · 点击进入</span></div></button>`).join('')}<div class="wide-card"><div><h2>继续上次调查</h2><p>当前停留在 N${String(state.node).padStart(2,'0')} · ${esc(current().title)}。你也可以从节点目录回看已经完成的节点。</p></div><button class="primary" data-action="current">回到当前进度</button></div></div>`; renderRail(); }
@@ -157,11 +183,11 @@
     renderRail();
   }
 
-  function showExtras(){ $('#dialog-title').textContent='额外探索 '; $('#dialog-body').innerHTML=`<div class="extras-list">${D.extras.map(x=>`<button data-action="extra" data-id="${esc(x.id)}"><h3>${esc(x.title)}</h3><p>${esc(x.prompt)}</p></button>`).join('')}</div>`; $('#dialog').showModal(); }
+  function showExtras(){ $('#dialog-title').textContent='额外探索 · 不阻塞主线'; $('#dialog-body').innerHTML=`<div class="extras-list">${D.extras.map(x=>`<button data-action="extra" data-id="${esc(x.id)}"><h3>${esc(x.title)}</h3><p>${esc(x.prompt)}</p></button>`).join('')}</div>`; $('#dialog').showModal(); }
   function showExtra(id){const x=D.extras.find(y=>y.id===id);if(!x)return;$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`${x.image?`<img class="dialog-image" src="${image(x.image)}" alt="${esc(x.title)}">`:''}<p class="dialog-body-text">${esc(x.prompt)}</p><div class="actions"><button class="primary" data-action="extra-answer" data-id="${esc(id)}">查看答案</button></div>`;}
   function showExtraAnswer(id){const x=D.extras.find(y=>y.id===id);$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`<p class="dialog-body-text"><strong>档案答案：</strong>${esc(x.answer)}</p><button class="secondary" data-action="extras">返回额外探索</button>`;}
   function showSettings(){ $('#dialog-title').textContent='游玩设置'; $('#dialog-body').innerHTML=`<div class="settings-row"><h3>字体大小</h3><p>在手机上阅读长段落时，可以放大正文。</p><button class="secondary" data-action="large-text">${state.largeText?'恢复标准字号':'放大正文'}</button></div><div class="settings-row"><h3>重新开始</h3><p>清空本设备上的进度，从序章重新进入。</p><button class="secondary danger" data-action="reset">清空进度</button></div><div class="settings-row"><h3>网页说明</h3><p>这是纯静态网页，不需要登录或联网数据；图片与进度都在本网页中处理。建议用手机浏览器打开，现场只在安全、开放的公共区域观察，不要为了答题攀爬或靠近危险位置。</p></div>`; $('#dialog').showModal(); }
   document.addEventListener('click', e=>{ const el=e.target.closest('[data-action]'); if(!el) return; const a=el.dataset.action; if(a==='review-node'){ const id=el.dataset.id; const target=node(id); if(!target)return; state.reviewNode=target.id; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); return; } if(a==='region'){ $('#dialog').close(); nextNode(Number(el.dataset.start)); } else if(a==='current'){ $('#dialog').close(); render(); } else if(a==='item'){const x=item(el.dataset.id);$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`${x.image?`<img class="dialog-image" src="${image(x.image)}" alt="${esc(x.title)}">`:' '}<p class="dialog-body-text">${esc(x.text)}</p>`;$('#dialog').showModal();} else if(a==='extra'){showExtra(el.dataset.id)} else if(a==='extra-answer'){showExtraAnswer(el.dataset.id)} else if(a==='large-text'){state.largeText=!state.largeText;document.body.classList.toggle('large-text',state.largeText);save();showSettings()} else if(a==='reset'){if(confirm('确定清空本设备上的卷宗进度吗？')){localStorage.removeItem(key);location.reload();}} else action(e); });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#dialog').open)$('#dialog').close();});
-  load(); ensureNodeHistoryStyles(); ensureMobileHistoryNav(); render();
+  load(); ensureNodeHistoryStyles(); ensureFeedbackEvidenceStyles(); ensureMobileHistoryNav(); render();
 })();
