@@ -647,7 +647,7 @@ window.GAME_DATA = {
         "你收好密信，准备去见联络人。"
       ],
       "type": "story",
-      "quote": "酒泉路314号，天黑后到。找伍先生。",
+      "quote": "314号，天黑后到。找伍先生。",
       "image": "image16.png",
       "caption": "白萝卜密信 · 剧情道具",
       "gains": [
@@ -656,7 +656,7 @@ window.GAME_DATA = {
       ],
       "wall": [
         "✓ 二白＝白萝卜。",
-        "✓ 酒泉路314号是最终联络地址。"
+        "✓ 314号是最终联络地址。"
       ]
     },
     {
@@ -669,7 +669,7 @@ window.GAME_DATA = {
       ],
       "type": "story",
       "image": "image17.jpeg",
-      "caption": "酒泉路旧址 · 原稿所附当代纪念馆照片",
+      "caption": "酒泉路旧址 · 纪念馆照片",
       "requires": [
         "address",
         "intelA",
@@ -1008,8 +1008,8 @@ window.GAME_DATA = {
     },
     {
       "id": "office",
-      "name": "酒泉路314号",
-      "tag": "整理情报 · 最终汇报",
+      "name": "酒泉路314号【涉及剧透切勿提前点开】",
+      "tag": "整理情报 · 最终决策",
       "start": 33,
       "end": 37,
       "image": "image17.jpeg"
