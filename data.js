@@ -403,6 +403,9 @@ window.GAME_DATA = {
         "城内狭窄巷子"
       ],
       "correct": 0,
+       "gains": [
+        "intelA"
+      ],
       "success": "高处视野开阔，适合作为观察与预警位置。"
     },
      {
