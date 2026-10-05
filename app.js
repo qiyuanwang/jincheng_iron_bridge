@@ -173,8 +173,14 @@
       if(n.id==='N37') nextNode('N38');
       else if(n.id==='N40') goHome();
       else nextNode(n.next || nextSequentialId(n));
-    }
-    else if(a==='home') goHome(); else if(a==='current') { state.reviewNode=null; state.selected={}; save(); $('#dialog').close(); render(); } else if(a==='resume-from-review') { if(state.reviewNode){ state.node=resolveNodeId(state.reviewNode)||state.node; state.reviewNode=null; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); } } else if(a==='map') showMap(); else if(a==='evidence') showEvidence(); else if(a==='wall') showWall(); else if(a==='history') showHistory(); else if(a==='extras') showExtras(); else if(a==='settings') showSettings(); else if(a==='close-dialog') $('#dialog').close();
+    }else if(a==='current') {
+  state.reviewNode = null;
+  state.selected = {};
+  save();
+  $('#dialog').close();
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+} else if(a==='resume-from-review') { if(state.reviewNode){ state.node=resolveNodeId(state.reviewNode)||state.node; state.reviewNode=null; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); } } else if(a==='map') showMap(); else if(a==='evidence') showEvidence(); else if(a==='wall') showWall(); else if(a==='history') showHistory(); else if(a==='extras') showExtras(); else if(a==='settings') showSettings(); else if(a==='close-dialog') $('#dialog').close();
     else if(a==='zoom') showImage(el.dataset.src,el.dataset.caption);
     else if(a==='answer-single') answerSingle(n, Number(el.dataset.i), el);
     else if(a==='judge') { state.selected.judge=el.dataset.val; document.querySelectorAll('.fields input').forEach(x=>x.removeAttribute('disabled')); toast(state.selected.judge==='yes'?'你选择相信自己的判断。':'提示已展开，输入地点名称时要包含“三台”。'); }
@@ -269,7 +275,16 @@
   function showExtra(id){const x=D.extras.find(y=>y.id===id);if(!x)return;$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`${x.image?`<img class="dialog-image" src="${image(x.image)}" alt="${esc(x.title)}">`:''}<p class="dialog-body-text">${esc(x.prompt)}</p><div class="actions"><button class="primary" data-action="extra-answer" data-id="${esc(id)}">查看答案</button></div>`;}
   function showExtraAnswer(id){const x=D.extras.find(y=>y.id===id);$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`<p class="dialog-body-text"><strong>档案答案：</strong>${esc(x.answer)}</p><button class="secondary" data-action="extras">返回额外探索</button>`;}
   function showSettings(){ $('#dialog-title').textContent='设置字体和重置进度'; $('#dialog-body').innerHTML=`<div class="settings-row"><h3>字体大小</h3><p>在手机上阅读长段落时，可以放大正文。</p><button class="secondary" data-action="large-text">${state.largeText?'恢复标准字号':'放大正文'}</button></div><div class="settings-row"><h3>重新开始</h3><p>清空本设备上的进度，从序章重新进入。</p><button class="secondary danger" data-action="reset">清空进度</button></div><div class="settings-row"><h3>网页说明</h3><p>这是纯静态网页，不需要登录或联网数据；图片与进度都在本网页中处理。建议用手机浏览器打开，现场只在安全、开放的公共区域观察，不要为了答题攀爬或靠近危险位置。</p></div>`; $('#dialog').showModal(); }
-  document.addEventListener('click', e=>{ const el=e.target.closest('[data-action]'); if(!el) return; const a=el.dataset.action; if(a==='review-node'){ const id=el.dataset.id; const target=node(id); if(!target)return; state.reviewNode=target.id; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); return; } if(a==='region'){ $('#dialog').close(); nextNode(Number(el.dataset.start)); } else if(a==='current'){ $('#dialog').close(); render(); } else if(a==='item'){const x=item(el.dataset.id);$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`${x.image?`<img class="dialog-image" src="${image(x.image)}" alt="${esc(x.title)}">`:' '}<p class="dialog-body-text">${esc(x.text)}</p>`;$('#dialog').showModal();} else if(a==='extra'){showExtra(el.dataset.id)} else if(a==='extra-answer'){showExtraAnswer(el.dataset.id)} else if(a==='large-text'){state.largeText=!state.largeText;document.body.classList.toggle('large-text',state.largeText);save();showSettings()} else if(a==='reset'){if(confirm('确定清空本设备上的卷宗进度吗？')){localStorage.removeItem(key);location.reload();}} else action(e); });
+  document.addEventListener('click', e=>{ const el=e.target.closest('[data-action]'); if(!el) return; const a=el.dataset.action;if(a==='review-node'){
+  const id=el.dataset.id;
+  const target=node(id);
+  if(!target)return;
+  state.reviewNode=target.id;
+  state.selected={};
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+  return;
+} if(a==='region'){ $('#dialog').close(); nextNode(Number(el.dataset.start)); } else if(a==='current'){ $('#dialog').close(); render(); } else if(a==='item'){const x=item(el.dataset.id);$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`${x.image?`<img class="dialog-image" src="${image(x.image)}" alt="${esc(x.title)}">`:' '}<p class="dialog-body-text">${esc(x.text)}</p>`;$('#dialog').showModal();} else if(a==='extra'){showExtra(el.dataset.id)} else if(a==='extra-answer'){showExtraAnswer(el.dataset.id)} else if(a==='large-text'){state.largeText=!state.largeText;document.body.classList.toggle('large-text',state.largeText);save();showSettings()} else if(a==='reset'){if(confirm('确定清空本设备上的卷宗进度吗？')){localStorage.removeItem(key);location.reload();}} else action(e); });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#dialog').open)$('#dialog').close();});
   load(); ensureNodeHistoryStyles(); ensureFeedbackEvidenceStyles(); ensureMobileHistoryNav(); render();
 })();
