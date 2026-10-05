@@ -307,6 +307,25 @@ window.GAME_DATA = {
       ],
       "button": "收好纸条"
     },
+      {
+      "id": "N17.0",
+      "title": "场景切换",
+      "body": [
+        "请确认是否前往下一地点白塔山"
+      ],
+      "type": "single",
+      "prompt": "确认？",
+      "options": [
+        "确认",
+        "晚些再去，暂留本地进度缓存",
+      ],
+      "correct": 0,
+      "gains": [
+        "intelA",
+        "view"
+      ],
+      "success": "你进入了白塔山调查区。"
+    },
     {
       "id": "N17",
       "title": "白塔山调查区",
