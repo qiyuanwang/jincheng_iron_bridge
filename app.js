@@ -19,7 +19,20 @@
   const current = () => node(state.reviewNode || state.node) || D.nodes[0];
   const mainProgressNode = () => node(state.node) || D.nodes[0];
   const save = () => { localStorage.setItem(key, JSON.stringify(state)); const s=$('#save-status'); if(s) s.textContent = '已自动保存 · ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); };
-  const load = () => { try { const x = JSON.parse(localStorage.getItem(key)); if (x && Array.isArray(x.completed)) Object.assign(state, x); if(!Array.isArray(state.answers)) state.answers=[]; } catch(e) {} document.body.classList.toggle('large-text', state.largeText); };
+  const load = () => {
+    try {
+      const x = JSON.parse(localStorage.getItem(key));
+      if (x && typeof x === 'object') Object.assign(state, x);
+    } catch(e) {}
+    if(!Array.isArray(state.completed)) state.completed=[];
+    if(!Array.isArray(state.items)) state.items=[];
+    if(!Array.isArray(state.walls)) state.walls=[];
+    if(!Array.isArray(state.notes)) state.notes=[];
+    if(!Array.isArray(state.history)) state.history=[];
+    if(!Array.isArray(state.answers)) state.answers=[];
+    if(!state.selected || typeof state.selected!=='object') state.selected={};
+    document.body.classList.toggle('large-text', !!state.largeText);
+  };
   const toast = msg => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(timer); timer=setTimeout(()=>t.classList.remove('show'),2500); };
   const image = (src, alt='配图') => src ? `./assets/${esc(src)}` : '';
   const labels = {story:'剧情过场',single:'关键调查 · 单选',fill:'关键调查 · 填空',judge:'关键调查 · 判断与填空',sort:'关键调查 · 排序',light:'关键调查 · 逐条点亮',field:'实景彩蛋'};
@@ -131,7 +144,20 @@
   }
   function renderGated(n) { const ms=missing(n); return `${shell(n)}<div class="gated"><h2>这条线索还没有齐</h2><p>先把前置证物放进卷宗，再回来继续。</p><ul class="missing-list">${ms.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><div class="actions"><button class="primary" data-action="map">回到调查地图</button><button class="secondary" data-action="evidence">查看已有证物</button></div></div>`; }
   function renderEnd(n) { return `${shell(n)}${reviewBanner(n)}<div class="completion">${n.image?`<img src="${image(n.image)}" alt="黄河铁桥晨光">`:''}<h1>${esc(n.title)}</h1><div class="scene-text">${bodyText(n)}</div>${n.video?`<section class="video-feature"><div class="video-preview"><img src="${image(n.video.image)}" alt="${esc(n.video.title)}"><span class="video-play" aria-hidden="true">▶</span></div><div class="video-copy"><span class="eyebrow">历史回顾视频</span><h2>${esc(n.video.title)}</h2><p>完成卷宗后，打开这篇历史回顾，继续了解兰州抗战期间的中山桥。视频位于微信文章页面，点击后将在新页面播放。</p><a class="primary video-link" target="_blank" rel="noopener noreferrer" href="${esc(n.video.url)}">${esc(n.video.label)}</a></div></section>`:''}${n.sources?`<h2>资料核对入口</h2><ul class="source-list"><li><a target="_blank" rel="noopener" href="https://dfzb.lanzhou.gov.cn/art/2017/10/16/art_9606_518474.html">兰州市地方志办公室：兰州黄河铁桥（中山桥）</a></li><li><a target="_blank" rel="noopener" href="https://www.lzbljbscjng.com/html/2023/guanzhang_0904/1156.html">兰州八路军办事处纪念馆：黄河铁桥</a></li><li><a target="_blank" rel="noopener" href="https://www.peopleapp.com/column/30050075288-500007051662">人民日报客户端：一座城市的空战记忆</a></li><li><a target="_blank" rel="noopener" href="https://www.gswbj.gov.cn/a/2024/07/09/21105.html">甘肃文旅：中山桥的百年守望</a></li></ul>`:''}<div class="actions"><button class="primary" data-action="home">回到卷宗首页</button><button class="secondary" data-action="settings">游玩设置</button></div></div>`; }
-  function render() { const n=current(); renderRail(); $('#main').innerHTML=renderNode(n); $('#main').focus({preventScroll:true}); bindState(n); }
+  function render() {
+    try {
+      const n=current();
+      if(!n) throw new Error('无法定位当前节点');
+      renderRail();
+      $('#main').innerHTML=renderNode(n);
+      $('#main').focus({preventScroll:true});
+      bindState(n);
+    } catch(e) {
+      console.error('[金城烽烟] render error:', e);
+      const main=$('#main');
+      if(main) main.innerHTML=`<div class=\"gated\"><h2>卷宗暂时无法打开</h2><p>请刷新页面。若仍然出现此提示，请在 GitHub 中确认 app.js 已完整上传。</p></div>`;
+    }
+  }
   function bindState(n) {
     if(n.type==='sort') { state.selected.sort ||= []; updateSort(); }
     if(n.type==='light') { state.selected.light ||= []; updateLight(n); }
@@ -168,8 +194,19 @@
   function sortAdd(v) { state.selected.sort ||= []; if(!state.selected.sort.includes(v)) state.selected.sort.push(v); updateSort(); }
   function updateSort(){ const box=$('#sort-order'); if(box) box.textContent=state.selected.sort?.length?state.selected.sort.join('  →  '):'还没有选择地点。请按顺序点击下方卡片。'; document.querySelectorAll('.sort-choice').forEach(b=>b.classList.toggle('selected',state.selected.sort?.includes(b.dataset.value))); }
   function submitSort(n) { if(JSON.stringify(state.selected.sort)!==JSON.stringify(n.order)){toast('顺序还不对：先回想运输批注。');return} appendFeedback(n,n.success,n.gains||[],state.selected.sort.join(' → ')); }
+  function updateLight(n) {
+    const selected = Array.isArray(state.selected.light) ? state.selected.light : [];
+    document.querySelectorAll('[data-action=\"light\"]').forEach((b,i)=>{
+      const on = selected.includes(i);
+      b.classList.toggle('selected', on);
+      const mark=b.querySelector('.letter');
+      if(mark) mark.textContent=on ? '✓' : '○';
+    });
+    const status=$('#light-status');
+    if(status) status.textContent=`已确认 ${selected.length} / ${n.options.length} 条`;
+  }
   function lightAdd(n,i,el) { state.selected.light ||= []; if(!state.selected.light.includes(i)){state.selected.light.push(i);el.classList.add('selected');el.querySelector('.letter').textContent='✓';} $('#light-status').textContent=`已确认 ${state.selected.light.length} / ${n.options.length} 条`; if(state.selected.light.length===n.options.length) appendFeedback(n,n.success,n.gains||[],n.options.join('；')); }
-  function goHome(){ state.node=1; state.history=[]; save(); render(); }
+  function goHome(){ state.node='N01'; state.history=[]; state.reviewNode=null; state.selected={}; save(); render(); }
   function ensureNodeHistoryStyles(){
     if(document.getElementById('node-history-style')) return;
     const style=document.createElement('style');
@@ -228,7 +265,7 @@
     renderRail();
   }
 
-  function showExtras(){ $('#dialog-title').textContent='额外探索'; $('#dialog-body').innerHTML=`<div class="extras-list">${D.extras.map(x=>`<button data-action="extra" data-id="${esc(x.id)}"><h3>${esc(x.title)}</h3><p>${esc(x.prompt)}</p></button>`).join('')}</div>`; $('#dialog').showModal(); }
+  function showExtras(){ $('#dialog-title').textContent='额外探索 · 不阻塞主线'; $('#dialog-body').innerHTML=`<div class="extras-list">${D.extras.map(x=>`<button data-action="extra" data-id="${esc(x.id)}"><h3>${esc(x.title)}</h3><p>${esc(x.prompt)}</p></button>`).join('')}</div>`; $('#dialog').showModal(); }
   function showExtra(id){const x=D.extras.find(y=>y.id===id);if(!x)return;$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`${x.image?`<img class="dialog-image" src="${image(x.image)}" alt="${esc(x.title)}">`:''}<p class="dialog-body-text">${esc(x.prompt)}</p><div class="actions"><button class="primary" data-action="extra-answer" data-id="${esc(id)}">查看答案</button></div>`;}
   function showExtraAnswer(id){const x=D.extras.find(y=>y.id===id);$('#dialog-title').textContent=x.title;$('#dialog-body').innerHTML=`<p class="dialog-body-text"><strong>档案答案：</strong>${esc(x.answer)}</p><button class="secondary" data-action="extras">返回额外探索</button>`;}
   function showSettings(){ $('#dialog-title').textContent='游玩设置'; $('#dialog-body').innerHTML=`<div class="settings-row"><h3>字体大小</h3><p>在手机上阅读长段落时，可以放大正文。</p><button class="secondary" data-action="large-text">${state.largeText?'恢复标准字号':'放大正文'}</button></div><div class="settings-row"><h3>重新开始</h3><p>清空本设备上的进度，从序章重新进入。</p><button class="secondary danger" data-action="reset">清空进度</button></div><div class="settings-row"><h3>网页说明</h3><p>这是纯静态网页，不需要登录或联网数据；图片与进度都在本网页中处理。建议用手机浏览器打开，现场只在安全、开放的公共区域观察，不要为了答题攀爬或靠近危险位置。</p></div>`; $('#dialog').showModal(); }
