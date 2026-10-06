@@ -568,7 +568,7 @@ window.GAME_DATA = {
       "options": [
         "红色更喜庆",
         "红色从空中和远处更容易辨认",
-        "红色代表桥龄"
+        "红色代表革命"
       ],
       "correct": 1,
       "requires": [
