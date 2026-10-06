@@ -958,7 +958,7 @@ window.GAME_DATA = {
       "id": "E4",
       "region": "hill",
       "title": "白塔山三宝",
-      "prompt": "选出你认为属于“镇山三宝”的物品。",
+      "prompt": "你认为属于“白塔山镇山三宝”的物品是什么？",
       "answer": "象皮鼓、青铜钟、紫荆树。",
       "image": null
     },
@@ -974,7 +974,7 @@ window.GAME_DATA = {
       "id": "E6",
       "region": "water",
       "title": "水车结构",
-      "prompt": "本卷宗记载水车约有多少对辐条、多少个水斗？",
+      "prompt": "黄河水车约有多少对辐条、多少个水斗？",
       "answer": "16对辐条、40个水斗。各水车形制有差别，以现场介绍为准。",
       "image": "image13.jpeg"
     },
@@ -990,8 +990,8 @@ window.GAME_DATA = {
       "id": "E8",
       "region": "bridge",
       "title": "黄河夜景",
-      "prompt": "如果今晚还在兰州，可以在开放的公共步道看看黄河风情线。",
-      "answer": "不需要为完成游戏等到夜晚。白天与夜色，都是你自己的旅程。",
+      "prompt": "如果今晚还在兰州，可以到中山桥看看黄河风情线夜景。",
+      "answer": "白天与夜色，都是你自己的美好旅程。",
       "image": "image19.png"
     }
   ],
