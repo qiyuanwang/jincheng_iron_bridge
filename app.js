@@ -67,23 +67,36 @@
     const i = D.nodes.findIndex(x => x.id === n.id);
     return i >= 0 && D.nodes[i + 1] ? D.nodes[i + 1].id : null;
   }
-  function nextNode(id) {
-    const targetId = resolveNodeId(id) || 'N01';
-    if(state.reviewNode){
-      state.reviewNode = targetId;
-      state.selected={};
-      save();
-      render();
-      window.scrollTo({top:0,behavior:'smooth'});
-      return;
-    }
-    state.history.push(state.node);
-    state.node = targetId;
-    state.selected={};
+function nextNode(id) {
+  const targetId = resolveNodeId(id) || 'N01';
+
+  // 没有输入正确口令，不允许进入任何主线节点
+  if(!state.caseUnlocked && targetId !== 'N01'){
+    state.node = 'N01';
+    state.reviewNode = null;
+    state.selected = {};
+    save();
+    render();
+    toast('请先输入行动口令，开启卷宗。');
+    return;
+  }
+
+  if(state.reviewNode){
+    state.reviewNode = targetId;
+    state.selected = {};
     save();
     render();
     window.scrollTo({top:0,behavior:'smooth'});
+    return;
   }
+
+  state.history.push(state.node);
+  state.node = targetId;
+  state.selected = {};
+  save();
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
   function finishNode(n) { if (!state.completed.includes(n.id)) state.completed.push(n.id); (n.gains||[]).forEach(x=>gain(x)); if(n.enterGains) n.enterGains.forEach(x=>gain(x)); (n.wall||[]).forEach(x=>{ if(!state.walls.includes(x)) state.walls.push(x); }); save(); }
   function gain(id) { if(!D.items[id] || has(id)) return; state.items.push(id); const x=item(id); if(x && !state.notes.includes(x.title)) state.notes.push(x.title); }
 
