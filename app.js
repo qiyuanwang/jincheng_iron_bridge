@@ -5,7 +5,19 @@
   const CASE_CODE = '261005';
   const $ = (s, root = document) => root.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const state = { node: 1, completed: [], items: [], walls: [], notes: [], selected: {}, history: [], answers: [], largeText: false, reviewNode: null };
+  const state = {
+  node: 1,
+  completed: [],
+  items: [],
+  walls: [],
+  notes: [],
+  selected: {},
+  history: [],
+  answers: [],
+  largeText: false,
+  reviewNode: null,
+  caseUnlocked: false
+};
   let timer;
   const node = id => {
     if(id == null) return D.nodes[0];
