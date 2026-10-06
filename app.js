@@ -173,6 +173,8 @@
       if(n.id==='N37') nextNode('N38');
       else if(n.id==='N40') goHome();
       else nextNode(n.next || nextSequentialId(n));
+    } else if(a==='home') {
+  goHome();
     }else if(a==='current') {
   state.reviewNode = null;
   state.selected = {};
