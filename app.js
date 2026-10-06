@@ -248,7 +248,34 @@
     document.head.appendChild(style);
   }
 
-  function ensureMobileHistoryNav(){ const nav=$('.mobile-nav'); if(!nav) return; if(!nav.querySelector('[data-action="history"]')) nav.insertAdjacentHTML('beforeend','<button data-action="history">进度</button>'); nav.style.gridTemplateColumns='repeat(5,1fr)'; nav.querySelectorAll('button').forEach(b=>{b.style.fontSize='12px';b.style.padding='0 2px';}); }
+function ensureMobileHistoryNav(){
+  const nav = $('.mobile-nav');
+  if(!nav) return;
+
+  const buttons = [
+    ['map', '地图'],
+    ['evidence', '证物'],
+    ['wall', '案件墙'],
+    ['history', '进度'],
+    ['extras', '探索']
+  ];
+
+  buttons.forEach(([action, label])=>{
+    if(!nav.querySelector(`[data-action="${action}"]`)){
+      nav.insertAdjacentHTML(
+        'beforeend',
+        `<button data-action="${action}">${label}</button>`
+      );
+    }
+  });
+
+  nav.style.gridTemplateColumns = 'repeat(5,1fr)';
+
+  nav.querySelectorAll('button').forEach(b=>{
+    b.style.fontSize = '12px';
+    b.style.padding = '0 2px';
+  });
+}
   function showImage(src,cap){ $('#dialog-title').textContent=cap||'卷宗配图'; $('#dialog-body').innerHTML=`<img class="dialog-image" src="${image(src)}" alt="${esc(cap||'卷宗配图')}">`; $('#dialog').showModal(); }
   function showMap(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">调查地图</span><span class="node-count">可按你的旅程进入</span></div><h1>金城调查地图</h1><p class="map-intro">主线按推荐顺序排列。已走过的地点会保留证物；点开任一调查区，即可从最适合当前进度的位置继续。</p><div class="route-caption"><span>推荐路线</span><span>中山桥 → 白塔山 → 水车园 → 城内 → 314号</span></div><div class="map-grid">${D.regions.map((r,i)=>`<button class="region-card" data-action="region" data-start="${r.start}"><img src="${image(r.image)}" alt="${esc(r.name)}"><div class="region-copy"><span class="region-number">0${i+1}</span><h2>${esc(r.name)}</h2><p>${esc(r.tag)}</p><span class="region-status">${state.completed.includes('N'+String(r.start).padStart(2,'0'))?'已调查':'待调查'} · 点击进入</span></div></button>`).join('')}<div class="wide-card"><div><h2>继续上次调查</h2><p>当前停留在 ${esc(mainProgressNode().id)} · ${esc(mainProgressNode().title)}。你也可以从节点目录回看已经完成的节点。</p></div><button class="primary" data-action="current">回到当前进度</button></div></div>`; renderRail(); }
   function showEvidence(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">证物库</span><span class="node-count">共 ${state.items.length} 件</span></div><h1>证物与档案</h1>${state.items.length?`<div class="items-grid">${state.items.map(id=>{const x=item(id);return `<button class="evidence-card" data-action="item" data-id="${esc(id)}">${x.image?`<img loading="lazy" src="${image(x.image)}" alt="${esc(x.title)}">`:'<div class="paper-mark">卷宗</div>'}<h3>${esc(x.title)}</h3><p>${esc(x.text)}</p></button>`}).join('')}</div>`:'<div class="empty">你还没有获得证物。沿着中山桥调查区开始，卷宗会在关键节点记录线索。</div>'}`; renderRail(); }
