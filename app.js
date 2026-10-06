@@ -200,7 +200,6 @@
   );
   setTimeout(()=>nextNode(nextSequentialId(n)),500);
 }
-    else if(a==='field-next') { finishNode(n); recordAnswer(n, n.options?.[state.selected.field] || '已完成现场记录'); const slot=$('#feedback-slot'); slot.innerHTML=feedback(n,'观察已记录，不判对错。你可以继续阅读这份历史回声。'); setTimeout(()=>nextNode(39),500); }
   }
   function appendFeedback(n,msg,gains,answer='') { finishNode(n); if(answer!=='') recordAnswer(n,answer); const slot=$('#feedback-slot'); slot.innerHTML=feedback(n,msg,gains||n.gains||[])+`<div class="actions"><button class="primary" data-action="continue">继续</button></div>`; document.querySelectorAll('.question button,.question input').forEach(x=>x.disabled=true); slot.scrollIntoView({behavior:'smooth',block:'center'}); }
   function answerSingle(n,i,el) { if(i===n.correct) { el.classList.add('selected'); appendFeedback(n,n.success,n.gains||[],n.options?.[i]||''); } else { el.classList.add('selected'); const q=el.closest('.question'); let er=q.querySelector('.error'); if(!er){er=document.createElement('div');er.className='error';q.prepend(er)} er.textContent=n.hint||'再想想。'; setTimeout(()=>el.classList.remove('selected'),650); } }
