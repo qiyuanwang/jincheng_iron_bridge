@@ -190,6 +190,16 @@
     else if(a==='submit-sort') submitSort(n);
     else if(a==='light') lightAdd(n,Number(el.dataset.i),el);
     else if(a==='field-record') { state.selected.field=Number(el.dataset.i); document.querySelectorAll('[data-action="field-record"]').forEach(x=>x.classList.remove('selected')); el.classList.add('selected'); }
+    else if(a==='field-next') {
+  finishNode(n);
+  recordAnswer(n, n.options?.[state.selected.field] || '已完成现场记录');
+  const slot=$('#feedback-slot');
+  slot.innerHTML=feedback(
+    n,
+    '观察已记录，不判对错。你可以继续阅读这份历史回声。'
+  );
+  setTimeout(()=>nextNode(nextSequentialId(n)),500);
+}
     else if(a==='field-next') { finishNode(n); recordAnswer(n, n.options?.[state.selected.field] || '已完成现场记录'); const slot=$('#feedback-slot'); slot.innerHTML=feedback(n,'观察已记录，不判对错。你可以继续阅读这份历史回声。'); setTimeout(()=>nextNode(39),500); }
   }
   function appendFeedback(n,msg,gains,answer='') { finishNode(n); if(answer!=='') recordAnswer(n,answer); const slot=$('#feedback-slot'); slot.innerHTML=feedback(n,msg,gains||n.gains||[])+`<div class="actions"><button class="primary" data-action="continue">继续</button></div>`; document.querySelectorAll('.question button,.question input').forEach(x=>x.disabled=true); slot.scrollIntoView({behavior:'smooth',block:'center'}); }
