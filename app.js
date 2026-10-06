@@ -160,7 +160,7 @@ function nextNode(id) {
   function renderStory(n) {
     if(n.id==='N01') return `${reviewBanner(n)}<section class="hero"><div class="hero-art"><img src="${image(n.image)}" alt="金城烽烟铁桥密信封面"></div><div class="hero-copy"><span class="eyebrow">兰州实景探索</span><h1>金城烽烟<span>铁桥密信</span></h1><div class="hero-rule"></div>${bodyText(n)}<div class="actions"><button class="primary" data-action="continue">${esc(n.button)}</button></div><p class="note">本作将当代实景观察、地方文化知识与虚构故事拼合为一份互动卷宗。</p></div></section>`;
     const continueLabel = n.button || (n.type === 'story' ? '继续' : '');
-    const content=`${bodyText(n)}${n.quote?`<blockquote class="quote">${esc(n.quote)}</blockquote>`:''}${n.note?`<div class="note">${esc(n.note)}</div>`:''}${continueLabel?`<div class="actions"><button class="primary" data-action="continue">${esc(continueLabel)}</button></div>`:''}`;
+    const content=`${bodyText(n)}${n.quote?`<blockquote class="quote">${esc(n.quote)}</blockquote>`:''}${n.note?`<div class="note">${esc(n.note)}</div>`:''}${continueLabel?`<div class="actions"><button class="primary" data-action="open-case">${esc(continueLabel)}</button></div>`:''}`;
     return `${shell(n)}${reviewBanner(n)}<div class="story-grid ${n.image||n.images?'':'no-image'}">${visuals(n)}<div class="scene-text">${content}${n.type!=='story'&&n.prompt?renderQuestion(n):''}${archive(n)}<div id="feedback-slot"></div></div></div>`;
   }
   function renderNode(n) {
@@ -199,7 +199,18 @@ function nextNode(id) {
       if(n.id==='N37') nextNode('N38');
       else if(n.id==='N40') goHome();
       else nextNode(n.next || nextSequentialId(n));
-    } else if(a==='home') {
+    }
+      else if(a==='open-case') {
+  if(state.caseUnlocked){
+    finishNode(n);
+    nextNode('N02');
+  } else {
+    showCaseCode();
+  }
+}
+else if(a==='verify-case-code') {
+  verifyCaseCode();
+}else if(a==='home') {
   goHome();
     }else if(a==='current') {
   state.reviewNode = null;
@@ -301,6 +312,81 @@ function showImage(src,cap){
   $('#dialog-title').textContent = cap || '卷宗配图';
   $('#dialog-body').innerHTML = `<img class="dialog-image" src="${image(src)}" alt="${esc(cap || '卷宗配图')}">`;
   $('#dialog').showModal();
+}
+  function showCaseCode(){
+  $('#dialog-title').textContent = '机密卷宗 · 输入行动口令';
+
+  $('#dialog-body').innerHTML = `
+    <div class="settings-row">
+      <p>这份卷宗并非公开资料。</p>
+      <p>请输入行动口令，才能正式开启调查。</p>
+
+      <p class="note">
+        尚未获得口令？请前往小红书联系「黄河书香读书会」。
+      </p>
+
+      <input
+        id="case-code"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        maxlength="6"
+        placeholder="请输入六位数字口令"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          padding:14px;
+          margin:12px 0;
+          font-size:22px;
+          letter-spacing:4px;
+          text-align:center;
+        "
+      >
+
+      <div id="case-code-error" class="error"></div>
+
+      <div class="actions">
+        <button class="primary" data-action="verify-case-code">
+          确认口令
+        </button>
+
+        <button class="secondary" data-action="close-dialog">
+          暂不进入
+        </button>
+      </div>
+    </div>
+  `;
+
+  $('#dialog').showModal();
+
+  setTimeout(() => {
+    $('#case-code')?.focus();
+  }, 50);
+}
+function verifyCaseCode(){
+  const input = $('#case-code');
+  const error = $('#case-code-error');
+  const code = String(input?.value || '').trim();
+
+  if(code === CASE_CODE){
+    state.caseUnlocked = true;
+    finishNode(node('N01'));
+    save();
+
+    $('#dialog').close();
+    nextNode('N02');
+    return;
+  }
+
+  if(error){
+    error.textContent =
+      '口令不正确，请前往小红书联系「黄河书香读书会」获取行动口令。';
+  }
+
+  if(input){
+    input.value = '';
+    input.focus();
+  }
 }
   function showMap(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">调查地图</span><span class="node-count">可按你的旅程进入</span></div><h1>金城调查地图</h1><p class="map-intro">主线按推荐顺序排列。已走过的地点会保留证物；点开任一调查区，即可从最适合当前进度的位置继续。</p><div class="route-caption"><span>推荐路线</span><span>中山桥 → 白塔山 → 水车园 → 城内 → 314号</span></div><div class="map-grid">${D.regions.map((r,i)=>`<button class="region-card" data-action="region" data-start="${r.start}"><img src="${image(r.image)}" alt="${esc(r.name)}"><div class="region-copy"><span class="region-number">0${i+1}</span><h2>${esc(r.name)}</h2><p>${esc(r.tag)}</p><span class="region-status">${state.completed.includes('N'+String(r.start).padStart(2,'0'))?'已调查':'待调查'} · 点击进入</span></div></button>`).join('')}<div class="wide-card"><div><h2>继续上次调查</h2><p>当前停留在 ${esc(mainProgressNode().id)} · ${esc(mainProgressNode().title)}。你也可以从节点目录回看已经完成的节点。</p></div><button class="primary" data-action="current">回到当前进度</button></div></div>`; renderRail(); }
   function showEvidence(){ $('#dialog').close(); $('#main').innerHTML=`<div class="page-meta"><span class="eyebrow">证物库</span><span class="node-count">共 ${state.items.length} 件</span></div><h1>证物与档案</h1>${state.items.length?`<div class="items-grid">${state.items.map(id=>{const x=item(id);return `<button class="evidence-card" data-action="item" data-id="${esc(id)}">${x.image?`<img loading="lazy" src="${image(x.image)}" alt="${esc(x.title)}">`:'<div class="paper-mark">卷宗</div>'}<h3>${esc(x.title)}</h3><p>${esc(x.text)}</p></button>`}).join('')}</div>`:'<div class="empty">你还没有获得证物。沿着中山桥调查区开始，卷宗会在关键节点记录线索。</div>'}`; renderRail(); }
