@@ -252,22 +252,13 @@ function ensureMobileHistoryNav(){
   const nav = $('.mobile-nav');
   if(!nav) return;
 
-  const buttons = [
-    ['map', '地图'],
-    ['evidence', '证物'],
-    ['wall', '案件墙'],
-    ['history', '进度'],
-    ['extras', '探索']
-  ];
+  nav.style.gridTemplateColumns = 'repeat(6, 1fr)';
 
-  buttons.forEach(([action, label])=>{
-    if(!nav.querySelector(`[data-action="${action}"]`)){
-      nav.insertAdjacentHTML(
-        'beforeend',
-        `<button data-action="${action}">${label}</button>`
-      );
-    }
+  nav.querySelectorAll('button').forEach(b=>{
+    b.style.fontSize = '12px';
+    b.style.padding = '0 2px';
   });
+}
 
   nav.style.gridTemplateColumns = 'repeat(5,1fr)';
 
