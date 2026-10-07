@@ -158,7 +158,7 @@ function nextNode(id) {
   }
 
   function renderStory(n) {
-    if(n.id==='N01') return `${reviewBanner(n)}<section class="hero"><div class="hero-art"><img src="${image(n.image)}" alt="金城烽烟铁桥密信封面"></div><div class="hero-copy"><span class="eyebrow">兰州实景探索</span><h1>金城烽烟<span>铁桥密信</span></h1><div class="hero-rule"></div>${bodyText(n)}<div class="actions"><button class="primary" data-action="continue">${esc(n.button)}</button></div><p class="note">本作将当代实景观察、地方文化知识与虚构故事拼合为一份互动卷宗。</p></div></section>`;
+    if(n.id==='N01') return `${reviewBanner(n)}<section class="hero"><div class="hero-art"><img src="${image(n.image)}" alt="金城烽烟铁桥密信封面"></div><div class="hero-copy"><span class="eyebrow">兰州实景探索</span><h1>金城烽烟<span>铁桥密信</span></h1><div class="hero-rule"></div>${bodyText(n)}<div class="actions"><button class="primary" data-action="open-case">${esc(n.button)}</button></div><p class="note">本作将当代实景观察、地方文化知识与虚构故事拼合为一份互动卷宗。</p></div></section>`;
     const continueLabel = n.button || (n.type === 'story' ? '继续' : '');
     const content=`${bodyText(n)}${n.quote?`<blockquote class="quote">${esc(n.quote)}</blockquote>`:''}${n.note?`<div class="note">${esc(n.note)}</div>`:''}${continueLabel?`<div class="actions"><button class="primary" data-action="open-case">${esc(continueLabel)}</button></div>`:''}`;
     return `${shell(n)}${reviewBanner(n)}<div class="story-grid ${n.image||n.images?'':'no-image'}">${visuals(n)}<div class="scene-text">${content}${n.type!=='story'&&n.prompt?renderQuestion(n):''}${archive(n)}<div id="feedback-slot"></div></div></div>`;
