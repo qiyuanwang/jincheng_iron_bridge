@@ -222,7 +222,7 @@ else if(a==='verify-case-code') {
 } else if(a==='resume-from-review') { if(state.reviewNode){ state.node=resolveNodeId(state.reviewNode)||state.node; state.reviewNode=null; state.selected={}; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); } } else if(a==='map') showMap(); else if(a==='evidence') showEvidence(); else if(a==='wall') showWall(); else if(a==='history') showHistory(); else if(a==='extras') showExtras(); else if(a==='settings') showSettings(); else if(a==='close-dialog') $('#dialog').close();
     else if(a==='zoom') showImage(el.dataset.src,el.dataset.caption);
     else if(a==='answer-single') answerSingle(n, Number(el.dataset.i), el);
-    else if(a==='judge') { state.selected.judge=el.dataset.val; document.querySelectorAll('.fields input').forEach(x=>x.removeAttribute('disabled')); toast(state.selected.judge==='yes'?'你选择相信自己的判断。':'提示已展开，输入地点名称时要包含“三台”。'); }
+    else if(a==='judge') { state.selected.judge=el.dataset.val; document.querySelectorAll('.fields input').forEach(x=>x.removeAttribute('disabled')); toast(state.selected.judge==='yes'?'你选择相信自己的判断。':'附近有座山叫皋兰山，搜索山顶观景台名称。'); }
     else if(a==='submit-fields') submitFields(n);
     else if(a==='sort-add') sortAdd(el.dataset.value);
     else if(a==='sort-reset') { state.selected.sort=[]; updateSort(); }
